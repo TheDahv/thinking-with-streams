@@ -115,4 +115,26 @@ stream.pipe(process.stdout);
 
 // Can streams talk?
 
+/*
+ * Try printing less items than our stream provides:
+ *    
+ *    node ep-1-data-as-streams/fib.js | head -n 10
+ * 
+ * Did you get an error? Our destination stream closes before our producer is
+ * finished. We need to make them listen to each other. In node, we can listen
+ * for changes on the destination stream.
+ *
+ * NOTE: We use stderr because stdout just closed! (this didn't make it into the
+ * video)
+ */
+
+process.stdout.on('error', (error) => {
+  console.error({
+    log: "stdout closed..cleaning up producer",
+    error
+  });
+
+  stream.destroy();
+});
+
 // Other ways to think about streams
