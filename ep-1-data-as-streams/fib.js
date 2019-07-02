@@ -63,11 +63,48 @@ function* fibGen (elements = 0) {
 // run out of its ability to represent large numbers before it runs out of
 // memory in this problem -- that is a problem, but not the focus of this video
 // :)
-for (const num of fibGen(10000000000)) {
-  console.log(num);
-}
+// ========= COMMENTED OUT SO WE CAN WORK WITH STREAMS INSTEAD ==========
+//for (const num of fibGen(10000000000)) {
+//  console.log(num);
+//}
 
 // Consuming and sharing streams
+
+const { Readable } = require('stream');
+
+/**
+ * fibStream models our fibonacci sequence as a stream of data. In Node.js
+ * terms, it is a "Readable" stream [0]. That means we can consume it bit by bit
+ * using the various APIs Node provides for working with streams.
+ *
+ * [0] - https://nodejs.org/api/stream.html#stream_readable_streams
+ */
+function fibStream (elements) {
+  let a = 0;
+  let b = 1;
+
+  return new Readable({
+    objectMode: true,
+
+    read () {
+      if (elements === 0) { return this.push(null); }
+
+      const c = a + b;
+      a = b;
+      b = c;
+
+      this.push(c);
+      elements--;
+    }
+  });
+}
+
+// Set up a rather large stream of numbers
+const stream = fibStream(10000000000);
+
+// Here we use Node's event-based API for working with streams. It will consume
+// the stream and run our program on each chunk or element the stream emits
+stream.on('data', (num) => console.log(num));
 
 // Can streams talk?
 
