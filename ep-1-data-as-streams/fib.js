@@ -168,11 +168,43 @@ const highland = require('highland');
  * Redirecting streams isn't the only thing we can do. We can also consume the
  * stream and process it to produce a final result
  */
-highland(stream).
-  // Limit the number of items we want from the source stream, potentially
-  // ending the source stream prematurely
-  take(10).
-  // Turn the stream of numbers into a single value, using the sum function
-  reduce(0, (total, num) => total + num).
-  // Wait for that final result to be calculated and then print it
-  apply(total => console.log(total));
+//highland(stream).
+//  // Limit the number of items we want from the source stream, potentially
+//  // ending the source stream prematurely
+//  take(10).
+//  // Turn the stream of numbers into a single value, using the sum function
+//  reduce(0, (total, num) => total + num).
+//  // Wait for that final result to be calculated and then print it
+//  apply(total => console.log(total));
+
+// Other stream tricks:
+
+/**
+ * Highland can also read stream-likes such as:
+ * - arrays
+ * - generators
+ * - promises,
+ * - callbacks
+ */
+highland([ 1, 1, 2, 3, 5, 8, 13 ]).
+  map((num) => `Array fib: ${num}`).
+  intersperse('\n').
+  pipe(process.stdout);
+
+highland(fibGen(10)).
+  map((num) => `Generator fib: ${num}`).
+  intersperse('\n').
+  pipe(process.stdout);
+
+// Node also comes with a few built-in tools
+// Make sure you're using Node v12 or greater
+
+// https://nodejs.org/api/stream.html#stream_readable_from_iterable_options
+Readable.from(fibGen(10)).pipe(process.stdout);
+
+// https://nodejs.org/api/stream.html#stream_streams_compatibility_with_async_generators_and_async_iterators
+(async () => {
+  for await (const num of fibGen(10)) {
+    console.log(`async loop: ${num}`);
+  }
+})();
