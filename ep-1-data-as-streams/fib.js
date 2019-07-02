@@ -93,8 +93,9 @@ function fibStream (elements) {
       a = b;
       b = c;
 
-      // Even though we're in object mode, process.stdout needs strings
-      this.push(c.toString() + '\n');
+      // Return to emitting raw numbers because Highland is helping us transform
+      // data.
+      this.push(c);
       elements--;
     }
   });
@@ -111,15 +112,16 @@ const stream = fibStream(10000000000);
 // destination, or a "Writable" stream. ".pipe" allows us to connect streams
 // together. However, console.log knows how to deal with numbers, but
 // "process.stdout" does not. So we alter the stream to emit strings.
-stream.pipe(process.stdout);
+// ========= COMMENTED OUT SO WE CAN WORK WITH HIGHLAND INSTEAD ==========
+//stream.pipe(process.stdout);
 
 // Can streams talk?
 
 /*
  * Try printing less items than our stream provides:
- *    
+ *
  *    node ep-1-data-as-streams/fib.js | head -n 10
- * 
+ *
  * Did you get an error? Our destination stream closes before our producer is
  * finished. We need to make them listen to each other. In node, we can listen
  * for changes on the destination stream.
@@ -138,3 +140,26 @@ process.stdout.on('error', (error) => {
 });
 
 // Other ways to think about streams
+
+/**
+ * Highland.js is a great library for working with streams. It lets us wrap all
+ * kinds of JavaScript stream-like concepts so we can work with them with an API
+ * and idioms more familiar to the rest of typical JavaScript programming.
+ *
+ * Now we can clean up our stream so it doesn't have to concern itself with the
+ * requirements of destination streams (that data chunks must be strings)..
+ *
+ * It also lets us set up transform/through streams to modify data as it flows
+ * down the stream.
+ *
+ * NOTE: Make sure you run "yarn install" or "npm install" before this.
+ */
+
+const highland = require('highland');
+highland(stream).
+  // Transform each element in the stream to a string
+  map((num) => num.toString()).
+  // Add new lines between each item in the stream
+  intersperse('\n').
+  // Connect the transformed stream to stdout
+  pipe(process.stdout);
