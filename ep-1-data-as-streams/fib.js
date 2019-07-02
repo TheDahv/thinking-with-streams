@@ -156,10 +156,23 @@ process.stdout.on('error', (error) => {
  */
 
 const highland = require('highland');
+//highland(stream).
+//  // Transform each element in the stream to a string
+//  map((num) => num.toString()).
+//  // Add new lines between each item in the stream
+//  intersperse('\n').
+//  // Connect the transformed stream to stdout
+//  pipe(process.stdout);
+
+/**
+ * Redirecting streams isn't the only thing we can do. We can also consume the
+ * stream and process it to produce a final result
+ */
 highland(stream).
-  // Transform each element in the stream to a string
-  map((num) => num.toString()).
-  // Add new lines between each item in the stream
-  intersperse('\n').
-  // Connect the transformed stream to stdout
-  pipe(process.stdout);
+  // Limit the number of items we want from the source stream, potentially
+  // ending the source stream prematurely
+  take(10).
+  // Turn the stream of numbers into a single value, using the sum function
+  reduce(0, (total, num) => total + num).
+  // Wait for that final result to be calculated and then print it
+  apply(total => console.log(total));
