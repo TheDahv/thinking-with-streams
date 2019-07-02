@@ -93,7 +93,8 @@ function fibStream (elements) {
       a = b;
       b = c;
 
-      this.push(c);
+      // Even though we're in object mode, process.stdout needs strings
+      this.push(c.toString() + '\n');
       elements--;
     }
   });
@@ -104,7 +105,13 @@ const stream = fibStream(10000000000);
 
 // Here we use Node's event-based API for working with streams. It will consume
 // the stream and run our program on each chunk or element the stream emits
-stream.on('data', (num) => console.log(num));
+//stream.on('data', (num) => console.log(num));
+
+// We can also connect to external stream destinations. Stdout is such a stream
+// destination, or a "Writable" stream. ".pipe" allows us to connect streams
+// together. However, console.log knows how to deal with numbers, but
+// "process.stdout" does not. So we alter the stream to emit strings.
+stream.pipe(process.stdout);
 
 // Can streams talk?
 
